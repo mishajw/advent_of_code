@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
-with open("inputs/day1.txt", "r") as f:
-    ns = "".join(f).strip()
-ns += ns[0]
+def repeated_sum(s, n: int) -> int:
+    return sum(int(i) for i, j in zip(s, (s + s)[n:len(s) + n]) if i == j)
 
-print(sum(int(i) for i, j in zip(ns[:-1], ns[1:]) if i == j))
+with open("inputs/day1.txt", "r") as f:
+    numbers = "".join(f).strip()
+
+print(f"Part one: {repeated_sum(numbers, 1)}")
+print(f"Part two: {repeated_sum(numbers, int(len(numbers) / 2))}")
 
