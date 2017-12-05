@@ -1,3 +1,6 @@
+import qualified Data.Sequence as DS
+
+type Instructions = DS.Seq Int
 type IncrementRule = Int -> Int
 
 main :: IO ()
@@ -8,31 +11,27 @@ main = do
   putStrLn $ "First steps: " ++ show firstSteps
   putStrLn $ "Second steps: " ++ show secondSteps
 
-getFile :: String -> IO [Int]
+getFile :: String -> IO Instructions
 getFile path = do
   input <- readFile path
-  return $ map read . lines $ input
+  return $ DS.fromList . map read . lines $ input
 
 firstIncrementRule :: IncrementRule
 firstIncrementRule = (+1)
 
 secondIncrementRule :: IncrementRule
-secondIncrementRule x = if x > 3 then x - 1 else x + 1
+secondIncrementRule x = if x >= 3 then x - 1 else x + 1
 
-getSteps :: IncrementRule -> [Int] -> Int
-getSteps rule instructions = getSteps' 0 0 instructions
+getSteps :: IncrementRule -> Instructions -> Int
+getSteps rule = getSteps' 0 0
   where
-    getSteps' :: Int -> Int -> [Int] -> Int
+    getSteps' :: Int -> Int -> Instructions -> Int
     getSteps' step index instructions =
-      if index < 0 || index >= instructionLength then step else
-        getSteps'
-          (step + 1)
-          (index + instructions !! index)
-          (incrementInstruction index instructions)
-
-    instructionLength = length instructions
-
-    incrementInstruction :: Int -> [Int] -> [Int]
-    incrementInstruction index instructions =
-      take index instructions ++ rule (instructions !! index) : drop (index + 1) instructions
+      case DS.lookup index instructions of
+        Just instruction ->
+          getSteps'
+            (step + 1)
+            (index + instruction)
+            (DS.adjust rule index instructions)
+        Nothing -> step
 
