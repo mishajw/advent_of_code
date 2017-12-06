@@ -1,22 +1,34 @@
 import qualified Data.Sequence as DS
 import qualified Data.Set as DSt
+import qualified Data.Map.Strict as DM
 
 type Bins = DS.Seq Int
 
 main :: IO ()
 main = do
   bins <- getFile "inputs/day6.txt"
-  print $ countCycle bins
+  print $ stepsUntilCycle bins
+  print $ cycleSize bins
 
-countCycle :: Bins -> Int
-countCycle = countCycle' 0 DSt.empty
+stepsUntilCycle :: Bins -> Int
+stepsUntilCycle = stepsUntilCycle' 0 DSt.empty
   where
-    countCycle' :: Int -> DSt.Set Bins -> Bins -> Int
-    countCycle' step seen bins =
+    stepsUntilCycle' :: Int -> DSt.Set Bins -> Bins -> Int
+    stepsUntilCycle' step seen bins =
       let nextBins = redistributeMax bins in
       if DSt.member nextBins seen
       then step + 1
-      else countCycle' (step + 1) (DSt.insert nextBins seen) nextBins
+      else stepsUntilCycle' (step + 1) (DSt.insert nextBins seen) nextBins
+
+cycleSize :: Bins -> Int
+cycleSize = cycleSize' 0 DM.empty
+  where
+    cycleSize' :: Int -> DM.Map Bins Int -> Bins -> Int
+    cycleSize' step seen bins =
+      let nextBins = redistributeMax bins in
+      case DM.lookup nextBins seen of
+        Just lastStep -> step - lastStep
+        Nothing -> cycleSize' (step + 1) (DM.insert nextBins step seen) nextBins
 
 redistributeMax :: Bins -> Bins
 redistributeMax bins =
